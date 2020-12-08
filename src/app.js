@@ -4,7 +4,8 @@ const morgan = require("morgan");
 const cors = require("cors");
 const helmet = require("helmet");
 const { NODE_ENV } = require("./config");
-// const someRouter = require('./some-routers/some-router');
+const folderRouter = require('./folder/folder-router');
+const noteRouter = require('./note/note-router');
 
 const morganOption = NODE_ENV === "production" ? "tiny" : "common";
 
@@ -14,10 +15,11 @@ app.use(helmet());
 app.use(cors());
 app.use(express.json());
 
-// app.use("/anendpoint", someRouter);
+app.use("/folder", folderRouter);
+app.use("/note", noteRouter);
 
 app.get('/', (req, res) => {
-  res.send('Hello, boilerplate!')
+  res.send('Hello, boilerplate!');
 });
 
 app.use(function errorHandler(error, req, res, next) {
