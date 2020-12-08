@@ -15,11 +15,11 @@ app.use(helmet());
 app.use(cors());
 app.use(express.json());
 
-app.use("/folder", folderRouter);
-app.use("/note", noteRouter);
+app.use("/api/folder", folderRouter);
+app.use("/api/note", noteRouter);
 
 app.get('/', (req, res) => {
-  res.send('Hello, boilerplate!');
+  res.send('Hello, app! Use endpoints api/folder and api/note for your data');
 });
 
 app.use(function errorHandler(error, req, res, next) {
