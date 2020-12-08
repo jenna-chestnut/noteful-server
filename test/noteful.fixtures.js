@@ -1,7 +1,7 @@
 const faker = require('faker');
 
 const returnSomething = () => {
-  return 'Hello, boilerplate!';
+  return 'Hello, app! Use endpoints api/folder and api/note for your data';
 };
 
 const makeFoldersArray = () => {

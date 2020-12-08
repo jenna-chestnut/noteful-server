@@ -26,10 +26,10 @@ describe("Folder endpoints", () => {
     return db.raw('TRUNCATE folder, note RESTART IDENTITY CASCADE');
   });
 
-  describe("GET /folder", () => {
+  describe("GET /api/folder", () => {
     context(`Given no folder`, () => {
       it(`responds with 200 and an empty list`, () => {
-        return supertest(app).get("/folder").expect(200, []);
+        return supertest(app).get("/api/folder").expect(200, []);
       });
     });
 
@@ -40,8 +40,8 @@ describe("Folder endpoints", () => {
         return db.into("folder").insert(testFolders);
       });
 
-      it("GET /folder responds with 200 and all folder", () => {
-        return supertest(app).get("/folder").expect(200, testFolders);
+      it("GET /api/folder responds with 200 and all folder", () => {
+        return supertest(app).get("/api/folder").expect(200, testFolders);
       });
     });
 
@@ -56,7 +56,7 @@ describe("Folder endpoints", () => {
       
       it('removes XSS attack content', () => {
         return supertest(app)
-          .get(`/folder`)
+          .get(`/api/folder`)
           .expect(200)
           .expect(res => {
             expect(res.body[0].folder_name).to.eql('Naughty naughty very naughty &lt;script&gt;alert(\"xss\");&lt;/script&gt;');
@@ -65,27 +65,27 @@ describe("Folder endpoints", () => {
     });
   });
 
-  describe("POST /folder", () => {
+  describe("POST /api/folder", () => {
     it("creates an folder, responds with 201 and the new folder", function() {
       this.retries(3);
       const newFolder = {
         folder_name: "Listicle",
       };
       return supertest(app)
-        .post("/folder")
+        .post("/api/folder")
         .send(newFolder)
         .expect(201)
         .expect((res) => {
           expect(res.body.folder_name).to.eql(newFolder.folder_name);
           expect(res.body).to.have.property("id");
-          expect(res.headers.location).to.eql(`/folder/${res.body.id}`);
+          expect(res.headers.location).to.eql(`/api/folder/${res.body.id}`);
         //   const expected = new Date().toLocaleDateString();
         //   const actual = new Date(res.body.date_published).toLocaleDateString();
         //   expect(actual).to.eql(expected);
         })
         .then((postRes) =>
           supertest(app)
-            .get(`/folder/${postRes.body.id}`)
+            .get(`/api/folder/${postRes.body.id}`)
             .expect(postRes.body)
         );
     });
@@ -93,7 +93,7 @@ describe("Folder endpoints", () => {
     it(`responds with 400 and an error message when folder_name field is missing`, () => {
       const newFolder = {};
       return supertest(app)
-        .post('/folder')
+        .post('/api/folder')
         .send(newFolder)
         .expect(400, {
           error: {message: `Missing folder name in request body`}
@@ -106,7 +106,7 @@ describe("Folder endpoints", () => {
       
     it('removes XSS attack content', () => {
       return supertest(app)
-        .post(`/folder`)
+        .post(`/api/folder`)
         .send(maliciousFolder)
         .expect(201)
         .expect(res => {
@@ -115,12 +115,12 @@ describe("Folder endpoints", () => {
     });
   });
 
-  describe("GET /folder/:id", () => {
+  describe("GET /api/folder/:id", () => {
     context(`Given no folder`, () => {
       it(`responds with 404`, () => {
         const folderId = 123456;
         return supertest(app)
-          .get(`/folder/${folderId}`)
+          .get(`/api/folder/${folderId}`)
           .expect(404, { error: { message: `Folder doesn't exist` } });
       });
     });
@@ -132,11 +132,11 @@ describe("Folder endpoints", () => {
         return db.into("folder").insert(testFolders);
       });
 
-      it("GET /folder/:id responds with 200 and the specified article", () => {
+      it("GET /api/folder/:id responds with 200 and the specified article", () => {
         const folderId = 3;
         const expected = testFolders[folderId - 1];
         return supertest(app)
-          .get(`/folder/${folderId}`)
+          .get(`/api/folder/${folderId}`)
           .expect(200, expected);
       });
     });
@@ -152,7 +152,7 @@ describe("Folder endpoints", () => {
       
       it('removes XSS attack content', () => {
         return supertest(app)
-          .get(`/folder/${maliciousFolder.id}`)
+          .get(`/api/folder/${maliciousFolder.id}`)
           .expect(200)
           .expect(res => {
             expect(res.body.folder_name).to.eql('Naughty naughty very naughty &lt;script&gt;alert(\"xss\");&lt;/script&gt;');
@@ -161,12 +161,12 @@ describe("Folder endpoints", () => {
     });
   });
 
-  describe(`DELETE /folder/:folder_id`, () => {
+  describe(`DELETE /api/folder/:folder_id`, () => {
     context(`Given no folder`, () => {
       it(`responds with 404`, () => {
         const folderId = 123456;
         return supertest(app)
-          .delete(`/folder/${folderId}`)
+          .delete(`/api/folder/${folderId}`)
           .expect(404, { error: { message: `Folder doesn't exist` } });
       });
     });
@@ -184,11 +184,11 @@ describe("Folder endpoints", () => {
         const idToRemove = 2;
         const expectedFolder = testFolders.filter(folder => folder.id !== idToRemove);
         return supertest(app)
-          .delete(`/folder/${idToRemove}`)
+          .delete(`/api/folder/${idToRemove}`)
           .expect(204)
           .then(res =>
             supertest(app)
-              .get(`/folder`)
+              .get(`/api/folder`)
               .expect(expectedFolder)
           );
       });

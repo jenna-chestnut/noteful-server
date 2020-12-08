@@ -26,10 +26,10 @@ describe("Note endpoints", () => {
     return db.raw('TRUNCATE folder, note RESTART IDENTITY CASCADE');
   });
 
-  describe("GET /note", () => {
+  describe("GET /api/note", () => {
     context(`Given no note`, () => {
       it(`responds with 200 and an empty list`, () => {
-        return supertest(app).get("/note").expect(200, []);
+        return supertest(app).get("/api/note").expect(200, []);
       });
     });
 
@@ -45,8 +45,8 @@ describe("Note endpoints", () => {
         return db.into("note").insert(testNotes);
       });
 
-      it("GET /note responds with 200 and all note", () => {
-        return supertest(app).get("/note").expect(200, testNotes);
+      it("GET /api/note responds with 200 and all note", () => {
+        return supertest(app).get("/api/note").expect(200, testNotes);
       });
     });
 
@@ -68,7 +68,7 @@ describe("Note endpoints", () => {
       
       it('removes XSS attack content', () => {
         return supertest(app)
-          .get(`/note`)
+          .get(`/api/note`)
           .expect(200)
           .expect(res => {
             expect(res.body[0].note_name).to.eql('Naughty naughty very naughty &lt;script&gt;alert(\"xss\");&lt;/script&gt;');
@@ -77,7 +77,7 @@ describe("Note endpoints", () => {
     });
   });
 
-  describe("POST /note", () => {
+  describe("POST /api/note", () => {
     const testFolders = makeFoldersArray();
 
     beforeEach('insert folders for foreign key constraints', () => {
@@ -97,20 +97,20 @@ describe("Note endpoints", () => {
       };
 
       return supertest(app)
-        .post("/note")
+        .post("/api/note")
         .send(newNote)
         .expect(201)
         .expect((res) => {
           expect(res.body.note_name).to.eql(newNote.note_name);
           expect(res.body).to.have.property("id");
-          expect(res.headers.location).to.eql(`/note/${res.body.id}`);
+          expect(res.headers.location).to.eql(`/api/note/${res.body.id}`);
           const expected = new Date().toLocaleString();
           const actual = new Date(res.body.modified).toLocaleString();
           expect(actual).to.eql(expected);
         })
         .then((postRes) =>
           supertest(app)
-            .get(`/note/${postRes.body.id}`)
+            .get(`/api/note/${postRes.body.id}`)
             .expect(postRes.body)
         );
     });
@@ -129,7 +129,7 @@ describe("Note endpoints", () => {
 
         delete newNote[field];
         return supertest(app)
-          .post('/note')
+          .post('/api/note')
           .send(newNote)
           .expect(400, {
             error: {message: `Missing ${field} in request body`}
@@ -142,7 +142,7 @@ describe("Note endpoints", () => {
       
       it('removes XSS attack content', () => {
         return supertest(app)
-          .post(`/note`)
+          .post(`/api/note`)
           .send(maliciousNote)
           .expect(201)
           .expect(res => {
@@ -152,12 +152,12 @@ describe("Note endpoints", () => {
     });
   });
 
-  describe("GET /note/:id", () => {
+  describe("GET /api/note/:id", () => {
     context(`Given no note`, () => {
       it(`responds with 404`, () => {
         const noteId = 123456;
         return supertest(app)
-          .get(`/note/${noteId}`)
+          .get(`/api/note/${noteId}`)
           .expect(404, { error: { message: `note doesn't exist` } });
       });
     });
@@ -174,11 +174,11 @@ describe("Note endpoints", () => {
         return db.into("note").insert(testNotes);
       });
 
-      it("GET /note/:id responds with 200 and the specified article", () => {
+      it("GET /api/note/:id responds with 200 and the specified article", () => {
         const noteId = 3;
         const expected = testNotes[noteId - 1];
         return supertest(app)
-          .get(`/note/${noteId}`)
+          .get(`/api/note/${noteId}`)
           .expect(200, expected);
       });
     });
@@ -202,7 +202,7 @@ describe("Note endpoints", () => {
       
       it('removes XSS attack content', () => {
         return supertest(app)
-          .get(`/note/${maliciousNote.id}`)
+          .get(`/api/note/${maliciousNote.id}`)
           .expect(200)
           .expect(res => {
             expect(res.body.note_name).to.eql('Naughty naughty very naughty &lt;script&gt;alert(\"xss\");&lt;/script&gt;');
@@ -211,12 +211,12 @@ describe("Note endpoints", () => {
     });
   });
 
-  describe(`DELETE /note/:note_id`, () => {
+  describe(`DELETE /api/note/:note_id`, () => {
     context(`Given no note`, () => {
       it(`responds with 404`, () => {
         const noteId = 123456;
         return supertest(app)
-          .delete(`/note/${noteId}`)
+          .delete(`/api/note/${noteId}`)
           .expect(404, { error: { message: `note doesn't exist` } });
       });
     });
@@ -237,11 +237,11 @@ describe("Note endpoints", () => {
         const idToRemove = 2;
         const expectedNote = testNotes.filter(note => note.id !== idToRemove);
         return supertest(app)
-          .delete(`/note/${idToRemove}`)
+          .delete(`/api/note/${idToRemove}`)
           .expect(204)
           .then(res =>
             supertest(app)
-              .get(`/note`)
+              .get(`/api/note`)
               .expect(expectedNote)
           );
       });
